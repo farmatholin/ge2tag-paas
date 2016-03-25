@@ -1,0 +1,13 @@
+geo2tag:
+  image: geo2tag/geo2tag
+  ports:
+    - "%port%:80"
+   #volumes:
+    #- %user_dir%/plugin:/var/www/geomongo/src/plugins
+    # add logs here
+  links:
+    - mongo
+mongo:
+  image: mongo:latest
+  volumes:
+    - %user_dir%/db:/data/db
