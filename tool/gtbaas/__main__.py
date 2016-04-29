@@ -1,4 +1,5 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
+from gtbaas.cli.main import main
 
-__version__ = '0.0.1dev'
+main()

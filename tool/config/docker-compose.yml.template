@@ -5,6 +5,7 @@ geo2tag:
    #volumes:
     #- %user_dir%/plugin:/var/www/geomongo/src/plugins
     # add logs here
+  #memory control here;
   links:
     - mongo
 mongo:
