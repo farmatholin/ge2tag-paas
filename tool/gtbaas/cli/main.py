@@ -4,6 +4,8 @@ import functools
 import sys
 import logging
 
+from gtbaas.gt_tool import GtTool
+
 """
 Main function
 
@@ -21,7 +23,6 @@ def main():
         dispatch()
     except KeyboardInterrupt:
         sys.exit(1)
-        pass
     except AttributeError as e:
         log.error(e)
         sys.exit(1)
@@ -50,10 +51,10 @@ def perform_command(handler, options):
 
 class Dispatcher(object):
     def __init__(self):
-        pass
+        self.tool = GtTool()
 
     """
-        Parse commands from args and return command to start
+    Parse commands from args and return command to start
     """
 
     def parse(self, args):
@@ -68,29 +69,25 @@ class Dispatcher(object):
         return getattr(self, cmd), vars(res)
 
     """
-        Start this app as server
+    Start this app as server
     """
-
     def server(self, options):
         pass
 
     """
-        Create docker-compose config and user folders
+    Create docker-compose config and user folders
     """
-
     def create(self, options):
         pass
 
     """
-        start user geo2tag instance
+    Start user geo2tag instance
     """
-
     def start(self, options):
         pass
 
     """
-        change user geo2tag instance
+    Change user geo2tag instance
     """
-
     def change_settings(self, options):
         pass
