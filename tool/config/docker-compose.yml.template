@@ -1,5 +1,5 @@
 geo2tag:
-  image: geo2tag/geo2tag
+  image: %image_container%
   ports:
     - "%port%:80"
    #volumes:

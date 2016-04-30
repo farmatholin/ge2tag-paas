@@ -24,7 +24,7 @@ def main():
     except KeyboardInterrupt:
         sys.exit(1)
     except AttributeError as e:
-        log.error(e)
+        log.error("command '{}' exist".format(sys.argv[1:2][0]))
         sys.exit(1)
     sys.exit(0)
 
@@ -42,11 +42,9 @@ def dispatch():
     setup_logging()
     dispatcher = Dispatcher()
     command, options = dispatcher.parse(sys.argv[1:])
-    return functools.partial(perform_command, command, options)
 
+    return command(options)
 
-def perform_command(handler, options):
-    return handler(options)
 
 
 class Dispatcher(object):
@@ -61,7 +59,7 @@ class Dispatcher(object):
         cmd = args[0]
 
         parser = argparse.ArgumentParser()
-        parser.add_argument('-u', '--name')
+        parser.add_argument('-u', '--user')
         parser.add_argument('-p', '--ports')
 
         res = parser.parse_args(args[1:])
@@ -78,7 +76,9 @@ class Dispatcher(object):
     Create docker-compose config and user folders
     """
     def create(self, options):
-        pass
+        print(options)
+        self.tool.create(options['user'])
+
 
     """
     Start user geo2tag instance
