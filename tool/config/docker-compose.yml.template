@@ -7,7 +7,7 @@ geo2tag_%user_id%:
     - %logs_path%:/var/log/apache2
   #memory control here;
   links:
-    - mongo_%user_id%
+    - mongo_%user_id%:mongo
 mongo_%user_id%:
   image: mongo:latest
   volumes:
