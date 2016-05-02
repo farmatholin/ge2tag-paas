@@ -1,14 +1,14 @@
-geo2tag:
+geo2tag_%user_id%:
   image: %image_container%
   ports:
     - "%port%:80"
-   #volumes:
-    #- %user_dir%/plugin:/var/www/geomongo/src/plugins
-    # add logs here
+   volumes:
+    - %plugins_path%:/var/www/geomongo/src/plugins
+    - %logs_path%:/var/log/apache2
   #memory control here;
   links:
     - mongo
-mongo:
+mongo_%user_id%:
   image: mongo:latest
   volumes:
-    - %user_dir%/db:/data/db
+    - %db_path%:/data/db

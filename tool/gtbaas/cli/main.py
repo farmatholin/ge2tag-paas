@@ -1,5 +1,4 @@
 import argparse
-import functools
 
 import sys
 import logging
@@ -46,7 +45,6 @@ def dispatch():
     return command(options)
 
 
-
 class Dispatcher(object):
     def __init__(self):
         self.tool = GtTool()
@@ -69,25 +67,27 @@ class Dispatcher(object):
     """
     Start this app as server
     """
+
     def server(self, options):
         pass
 
     """
     Create docker-compose config and user folders
     """
-    def create(self, options):
-        print(options)
-        self.tool.create(options['user'])
 
+    def create(self, options):
+        self.tool.create(options['user'])
 
     """
     Start user geo2tag instance
     """
+
     def start(self, options):
         pass
 
     """
     Change user geo2tag instance
     """
+
     def change_settings(self, options):
         pass
