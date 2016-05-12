@@ -1,14 +1,23 @@
-geo2tag_%user_id%:
+geo2tag_%container_id%:
   image: %image_container%
   ports:
     - "%port%:80"
   volumes:
     - %plugins_path%:/var/www/geomongo/src/plugins
     - %logs_path%:/var/log/apache2
+
   #memory control here;
+  #cpu_shares: 73
+  #cpu_quota: 50000
+  #cpuset: 0,1
+
+  #mem_limit: 1000000000
+  #memswap_limit: 2000000000
+
+  restart: always
   links:
-    - mongo_%user_id%:mongo
-mongo_%user_id%:
+    - mongo_%container_id%:mongo
+mongo_%container_id%:
   image: mongo:latest
   volumes:
     - %db_path%:/data/db

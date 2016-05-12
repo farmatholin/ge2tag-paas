@@ -1,6 +1,7 @@
 import os
 
 from gtbaas.config.compose_config import ComposeConfig
+from gtbaas.container import Container
 
 
 class User(object):
@@ -8,29 +9,42 @@ class User(object):
         self.user_id = user_id
         self.compose_config = compose_config
         self.path = path
-        self.logs_path = os.path.join(self.path, "logs")
-        self.db_path = os.path.join(self.path, "db")
-        self.plugins_path = os.path.join(self.path, "plugins")
+        self.containers = {}
 
     def create(self):
         os.mkdir(self.path)
-        os.mkdir(self.logs_path)
-        os.mkdir(self.db_path)
-        os.mkdir(self.plugins_path)
 
-    def create_config(self, port):
-        self.compose_config.create_config(port, self.user_id, {
-            'user_dir': self.path,
-            'logs_path': self.logs_path,
-            'db_path': self.db_path,
-            'plugins_path': self.plugins_path
-        })
+    def load(self):
+        self.load_containers()
+
+    def create_container(self, container_id, port):
+        if container_id in self.containers.keys():
+            return self.containers[container_id]
+
+        container = Container(container_id, self.path)
+        container.create()
+        self.create_config(container, port)
+        self.containers[container_id] = container
+        return container
+
+    def load_containers(self):
+        dirs = os.listdir(self.path)
+        for container in dirs:
+            self.containers[container] = Container(container, self.path)
+
+    def create_config(self, container, port):
+        self.compose_config.create_config(port, container)
+
+    def remove_container(self, container_uid):
+        pass
 
 
 def load_user(user_id, config):
     compose_config = ComposeConfig(config['dc_config_template'], config['image_container'])
     user_path = os.path.join(config['user_root_dir'], user_id)
-    return User(user_id, user_path, compose_config)
+    user = User(user_id, user_path, compose_config)
+    user.load()
+    return user
 
 
 def create_user(user_id, config):

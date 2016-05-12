@@ -11,13 +11,13 @@ class ComposeConfig(object):
         with open(self.template_path) as tmplt:
             return tmplt.read()
 
-    def create_config(self, port, user_id, paths):
+    def create_config(self, port, container):
         config = self.template \
-            .replace("%user_id%", str(user_id)) \
+            .replace("%container_id%", str(container.container_id)) \
             .replace("%port%", str(port)) \
             .replace("%image_container%", self.image_container) \
-            .replace("%plugins_path%", paths['plugins_path']) \
-            .replace("%logs_path%", paths['logs_path']) \
-            .replace("%db_path%", paths['db_path'])
-        with open(os.path.join(paths['user_dir'], "docker-compose.yml"), "w+") as compose:
+            .replace("%plugins_path%", container.plugins_path) \
+            .replace("%logs_path%", container.logs_path) \
+            .replace("%db_path%", container.db_path)
+        with open(os.path.join(container.path, "docker-compose.yml"), "w+") as compose:
             compose.write(config)

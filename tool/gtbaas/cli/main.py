@@ -22,7 +22,7 @@ def main():
         dispatch()
     except KeyboardInterrupt:
         sys.exit(1)
-    except AttributeError as e:
+    except CommandExistError as e:
         log.error("command '{}' exist".format(sys.argv[1:2][0]))
         sys.exit(1)
     sys.exit(0)
@@ -58,11 +58,16 @@ class Dispatcher(object):
 
         parser = argparse.ArgumentParser()
         parser.add_argument('-u', '--user')
-        parser.add_argument('-p', '--ports')
+        parser.add_argument('-c', '--container')
+        parser.add_argument('-p', '--port')
 
         res = parser.parse_args(args[1:])
+        try:
+            handler = getattr(self, cmd)
+        except AttributeError:
+            raise CommandExistError
 
-        return getattr(self, cmd), vars(res)
+        return handler, vars(res)
 
     """
     Start this app as server
@@ -74,20 +79,19 @@ class Dispatcher(object):
     """
     Create docker-compose config and user folders
     """
-
     def create(self, options):
-        self.tool.create(options['user'])
-
+        self.tool.create(options['user'],options['container'])
     """
     Start user geo2tag instance
     """
-
     def start(self, options):
         pass
 
     """
     Change user geo2tag instance
     """
-
     def change_settings(self, options):
         pass
+
+class CommandExistError(Exception):
+    pass
