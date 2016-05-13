@@ -3,7 +3,8 @@ import argparse
 import sys
 import logging
 
-from gtbaas.gt_tool import GtTool
+from gtbaas.gt_tool import GtTool, InitError
+from gtbaas.server.server import run_server
 
 """
 Main function
@@ -24,6 +25,9 @@ def main():
         sys.exit(1)
     except CommandExistError as e:
         log.error("command '{}' exist".format(sys.argv[1:2][0]))
+        sys.exit(1)
+    except InitError as e:
+        log.error("Run init first")
         sys.exit(1)
     sys.exit(0)
 
@@ -60,6 +64,7 @@ class Dispatcher(object):
         parser.add_argument('-u', '--user')
         parser.add_argument('-c', '--container')
         parser.add_argument('-p', '--port')
+        parser.add_argument('-d', '--daemon', action='store_true')
 
         res = parser.parse_args(args[1:])
         try:
@@ -74,24 +79,50 @@ class Dispatcher(object):
     """
 
     def server(self, options):
-        pass
+        #self.tool.init_check()
+        run_server(options['port'], options['daemon'])
 
     """
     Create docker-compose config and user folders
     """
+
     def create(self, options):
-        self.tool.create(options['user'],options['container'])
+        self.tool.init_check()
+        self.tool.create(options['user'], options['container'])
+
+    def remove(self, options):
+        self.tool.init_check()
+        self.tool.delete(options['user'], options['container'])
+
     """
     Start user geo2tag instance
     """
+
     def start(self, options):
-        pass
+        self.tool.init_check()
+        self.tool.start(options['user'], options['container'])
+
+    """
+        Start user geo2tag instance
+        """
+
+    def stop(self, options):
+        self.tool.init_check()
+        self.tool.stop(options['user'], options['container'])
 
     """
     Change user geo2tag instance
     """
+
     def change_settings(self, options):
-        pass
+        self.tool.init_check()
+
+    """
+    Check container and folders
+    """
+    def init(self, options):
+        self.tool.init()
+
 
 class CommandExistError(Exception):
     pass
