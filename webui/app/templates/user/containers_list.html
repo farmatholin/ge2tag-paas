@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+        <h2>Containers</h2>
+        <ul class="list-unstyled">
+            <li>
+                <a href="{{ url_for('create_container') }}">Create Container</a>
+            </li>
+            {% for container in containers %}
+             <li>
+                <a href="#{{ container.id }}">{{ container.name }}</a>
+             </li>
+            {% endfor %}
+            </ul>
+{% endblock %}

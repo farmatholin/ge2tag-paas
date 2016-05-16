@@ -4,7 +4,7 @@ import sys
 import logging
 
 from gtbaas.gt_tool import GtTool, InitError
-from gtbaas.server.server import run_server
+from gtbaas.server.server import run_server, MyDaemon
 
 """
 Main function
@@ -65,6 +65,7 @@ class Dispatcher(object):
         parser.add_argument('-c', '--container')
         parser.add_argument('-p', '--port')
         parser.add_argument('-d', '--daemon', action='store_true')
+        parser.add_argument('-s', '--stop', action='store_true')
 
         res = parser.parse_args(args[1:])
         try:
@@ -79,8 +80,15 @@ class Dispatcher(object):
     """
 
     def server(self, options):
-        #self.tool.init_check()
-        run_server(options['port'], options['daemon'])
+        self.tool.init_check()
+        if options['daemon']:
+            daemon = MyDaemon('/tmp/gttool.pid',options['port'])
+            if options['stop']:
+                daemon.stop()
+            else:
+                daemon.start()
+        else:
+            run_server(options['port'])
 
     """
     Create docker-compose config and user folders

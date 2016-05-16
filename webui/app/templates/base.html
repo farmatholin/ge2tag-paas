@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% if title %}
+    <title>{{ title }}</title>
+    {% else %}
+    <title>Geo2tag baas</title>
+    {% endif %}
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href=" {{ url_for('static', filename='vendor/css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href=" {{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    <script src="{{ url_for('static', filename='vendor/js/jquery-2.2.3.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/js/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+    {% block head %}{% endblock %}
+</head>
+<body>
+{% include "nav.html" %}
+<div class="container">
+    {% include "flash.html" %}
+    {% block content %}{% endblock %}
+</div>
+</body>
+</html>
