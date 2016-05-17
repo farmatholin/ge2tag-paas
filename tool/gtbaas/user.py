@@ -20,11 +20,11 @@ class User(object):
     def load(self):
         self.load_containers()
 
-    def create_container(self, container_id, port):
+    def create_container(self, container_id, port, cpu_chares, cpu_quota, mem_limit):
         if container_id in self.containers.keys():
             return self.containers[container_id]
 
-        container = Container(container_id, self.path)
+        container = Container(container_id, self.path, cpu_chares, cpu_quota, mem_limit)
         container.create()
         self.create_config(container, port)
         self.create_nginx_config(container, port)
@@ -34,7 +34,9 @@ class User(object):
     def load_containers(self):
         dirs = os.listdir(self.path)
         for container in dirs:
-            self.containers[container] = Container(container, self.path)
+            con = Container(container, self.path)
+            con.load()
+            self.containers[container] = con
 
     def create_config(self, container, port):
         self.compose_config.create_config(port, container)

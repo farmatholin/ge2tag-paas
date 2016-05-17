@@ -7,11 +7,11 @@ geo2tag_%container_id%:
     - %logs_path%:/var/log/apache2
 
   #memory control here;
-  #cpu_shares: 73
-  #cpu_quota: 50000
+  cpu_shares: %cpu_shares%
+  cpu_quota: %cpu_quota%
   #cpuset: 0,1
 
-  #mem_limit: 1000000000
+  mem_limit: %mem_limit%
   #memswap_limit: 2000000000
 
   restart: always

@@ -1,7 +1,7 @@
 import argparse
+import logging
 
 import sys
-import logging
 
 from gtbaas.gt_tool import GtTool, InitError
 from gtbaas.server.server import run_server, MyDaemon
@@ -63,6 +63,9 @@ class Dispatcher(object):
         parser = argparse.ArgumentParser()
         parser.add_argument('-u', '--user')
         parser.add_argument('-c', '--container')
+        parser.add_argument('--cpu-quota', default=25000)
+        parser.add_argument('--mem-limit', default='150M')
+        parser.add_argument('--cpu-shares', default=50)
         parser.add_argument('-p', '--port')
         parser.add_argument('-d', '--daemon', action='store_true')
         parser.add_argument('-s', '--stop', action='store_true')
@@ -82,7 +85,7 @@ class Dispatcher(object):
     def server(self, options):
         self.tool.init_check()
         if options['daemon']:
-            daemon = MyDaemon('/tmp/gttool.pid',options['port'])
+            daemon = MyDaemon('/tmp/gttool.pid', options['port'])
             if options['stop']:
                 daemon.stop()
             else:
@@ -96,7 +99,13 @@ class Dispatcher(object):
 
     def create(self, options):
         self.tool.init_check()
-        self.tool.create(options['user'], options['container'])
+        self.tool.create(
+            options['user'],
+            options['container'],
+            options['cpu_shares'],
+            options['cpu_quota'],
+            options['mem_limit']
+        )
 
     def remove(self, options):
         self.tool.init_check()
@@ -128,6 +137,7 @@ class Dispatcher(object):
     """
     Check container and folders
     """
+
     def init(self, options):
         self.tool.init()
 

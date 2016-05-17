@@ -10,7 +10,17 @@ tool = GtTool()
 
 @app.route("/")
 def hello():
-    return "Hello World!"
+    return 'Good morning sir'
+
+def start():
+    pass
+
+def stop():
+    pass
+
+def create():
+    pass
+
 
 
 def run_server(port):
