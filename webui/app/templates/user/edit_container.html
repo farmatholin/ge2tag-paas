@@ -1,15 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Create continer</h2>
+<h2>Edit continer</h2>
 <div class="row">
     <div class="col-md-6">
-        <form class="form-horizontal form" name="form" method="POST">
-            <div class="form-group">
-                <label for="input-name" class="col-lg-2 control-label">name</label>
-                <div class="col-lg-10">
-                    <input name="name" type="text" class="form-control" id="input-name" placeholder="Name">
-                </div>
-            </div>
+        <form class="form-horizontal" name="form" method="post">
+            <h2>Container name</h2>
             <div class="form-group">
                 <label for="input-cpu" class="col-lg-2 control-label">CPU</label>
                 <div class="col-lg-10">
@@ -24,7 +19,7 @@
             </div>
             <div class="form-group">
                 <div class="col-lg-offset-2 col-lg-10">
-                    <button type="submit" class="btn btn-primary">Create Container</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
                     <span class="help-block error"></span>
                 </div>
             </div>
@@ -32,8 +27,8 @@
         </form>
     </div>
     <div class="col-md-6">
-        <h2>Create Container</h2>
-        <p>Set name and performance</p>
+        <h2>Change container performance</h2>
+        <p>Change and performance</p>
     </div>
 </div>
 <script>

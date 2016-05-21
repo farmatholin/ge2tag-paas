@@ -1,4 +1,181 @@
 {% extends "base.html" %}
 {% block content %}
-        <h2>Container {{ container.name }}</h2>
+<h2>Container {{ container.name }}</h2>
+
+<h3>Response</h3>
+
+<div>
+    <p>
+        Response avg: <b id="response-avg">0ms</b>
+    </p>
+    <p>
+        Response max: <b id="response-max">0ms</b>
+    </p>
+    <p>
+        Max Response time: <b id="response-time">00:00</b>
+    </p>
+</div>
+<canvas id="response_Usage" width="400" height="150" data-container="{{ container.name }}"></canvas>
+
+<h3>CPU usage</h3>
+
+<div>
+    <p>
+        CPU avg usage: <b id="cpu-avg">0%</b>
+    </p>
+    <p>
+        CPU max usage: <b id="cpu-max">0%</b>
+    </p>
+    <p>
+        CPU max usage time: <b id="cpu-time">00:00</b>
+    </p>
+</div>
+
+<canvas id="cpu_Usage" width="400" height="150" data-container="{{ container.name }}"></canvas>
+
+<h3>RAM usage</h3>
+
+<div>
+    <p>
+        CPU avg usage: <b id="ram-avg">0%</b>
+    </p>
+    <p>
+        CPU max usage: <b id="ram-max">0%</b>
+    </p>
+    <p>
+        CPU max usage time: <b id="ram-time">00:00</b>
+    </p>
+</div>
+<canvas id="ram_Usage" width="400" height="150" data-container="{{ container.name }}"></canvas>
+
+
+
+<script>
+    $(function () {
+        var container = $("#cpu_Usage").data('container');
+
+        var send = function (cmd, container, callback) {
+            $.ajax({
+                type: "GET",
+                url: "/user/container/" + cmd + '/' + container,
+                success: function (data) {
+                    callback(data)
+                },
+                error: function () {
+                    return false
+                }
+            });
+        };
+
+
+        var cpu_chart = function (data) {
+            $('#cpu-avg').html(data.avg+"%");
+            $('#cpu-max').html(data.max.usage+"%");
+            $('#cpu-time').html(data.max.date);
+            var ctx = document.getElementById("cpu_Usage");
+            var myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+
+                    labels: data.labels,
+                    datasets: [{
+                        label: '% of CPU usage',
+                        data: data.data,
+                        fill: false,
+                        lineTension: 0.1,
+                        backgroundColor: "rgba(75,192,192,0.4)",
+                        borderColor: "rgba(75,192,192,1)",
+                        borderCapStyle: 'butt',
+                        borderDash: [],
+                        borderDashOffset: 0.0,
+                        borderJoinStyle: 'miter',
+                        pointBorderColor: "rgba(75,192,192,1)",
+                        pointBackgroundColor: "#fff",
+                        pointBorderWidth: 1,
+                        pointHoverRadius: 5,
+                        pointHoverBackgroundColor: "rgba(75,192,192,1)",
+                        pointHoverBorderColor: "rgba(220,220,220,1)",
+                        pointHoverBorderWidth: 2,
+                        pointRadius: 1,
+                        pointHitRadius: 10
+                    }]
+                }
+            });
+        };
+
+        var ram_chart = function (data) {
+            $('#ram-avg').html(data.avg+"M");
+            $('#ram-max').html(data.max.usage+"M");
+            $('#ram-time').html(data.max.date);
+            var ctx = document.getElementById("ram_Usage");
+            var myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'RAM usage',
+                        data: data.data,
+                        backgroundColor: "rgba(255,99,132,0.2)",
+                        borderColor: "rgba(255,99,132,1)",
+                        borderWidth: 1,
+                        hoverBackgroundColor: "rgba(255,99,132,0.4)",
+                        hoverBorderColor: "rgba(255,99,132,1)"
+                    }]
+                },
+                options: {
+                    scales: {
+                        xAxes: [{
+                            stacked: true
+                        }],
+                        yAxes: [{
+                            stacked: true
+                        }]
+                    }
+                }
+            });
+        };
+
+        var response_chart = function (data) {
+            $('#response-avg').html(data.avg+"ms");
+            $('#response-max').html(data.max.usage+"ms");
+            $('#response-time').html(data.max.date);
+            var ctx = document.getElementById("response_Usage");
+            var myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'response',
+                        data: data.data,
+                        fill: false,
+                        lineTension: 0.1,
+                        backgroundColor: "rgba(75,192,192,0.4)",
+                        borderColor: "rgba(75,192,192,1)",
+                        borderCapStyle: 'butt',
+                        borderDash: [],
+                        borderDashOffset: 0.0,
+                        borderJoinStyle: 'miter',
+                        pointBorderColor: "rgba(75,192,192,1)",
+                        pointBackgroundColor: "#fff",
+                        pointBorderWidth: 1,
+                        pointHoverRadius: 5,
+                        pointHoverBackgroundColor: "rgba(75,192,192,1)",
+                        pointHoverBorderColor: "rgba(220,220,220,1)",
+                        pointHoverBorderWidth: 2,
+                        pointRadius: 1,
+                        pointHitRadius: 10
+                    }]
+                }
+            });
+        };
+
+        send('response', container, response_chart);
+        send('cpu', container, cpu_chart);
+        send('ram', container, ram_chart);
+
+    })
+
+</script>
 {% endblock %}

@@ -1,4 +1,7 @@
+import datetime
+
 import requests
+import time
 from bson import ObjectId
 from flask import request, redirect, render_template, url_for, flash, g, jsonify
 from flask.ext.login import login_user, logout_user, login_required, current_user
@@ -80,7 +83,9 @@ def create_container():
                     app.config['TOOL_SERVER'], app.config['TOOL_PORT'])
                 , json={
                     "container": form.name.data,
-                    "user": g.user.username
+                    "user": g.user.username,
+                    "cpu": form.cpu.data,
+                    "ram": form.ram.data,
                 }
             )
             if res.ok and int(res.json()['code']) == 200:
@@ -91,6 +96,8 @@ def create_container():
                         "user_id": ObjectId(g.user.user_id),
                         'host': data['data']['host'],
                         'status': CONTAINER__STATUS_OFFLINE,
+                        "cpu": form.cpu.data,
+                        "ram": form.ram.data,
                     }
                 )
                 flash("Container Created", category='success')
@@ -111,6 +118,162 @@ def container(container_id):
         }
     )
     return render_template('user/container.html', container=cont)
+
+
+@app.route('/user/container/cpu/<container_id>')
+@login_required
+def container_stats_cpu(container_id):
+    cont = app.config['CONTAINERS_COLLECTION'].find_one(
+        {
+            "name": container_id,
+            "user_id": ObjectId(g.user.get_id())
+        }
+    )
+    now = datetime.datetime.now()
+    start = time.mktime(now.replace(hour=00, minute=00, second=00, microsecond=0).timetuple())
+    end = time.mktime(now.replace(hour=23, minute=59, second=59, microsecond=999999).timetuple())
+    stats = app.config['STATISTIC_COLLECTION'].find({
+        'container_id': cont['_id'],
+        'time': {'$gte': start, '$lte': end}
+    })
+
+    avg = 0.0
+    max_usage = 0.0
+    max_date = datetime.datetime.fromtimestamp(
+        time.time()
+    ).strftime('%H:%M')
+
+    res = {"data": [], "labels": [], 'avg': avg, 'max': {
+        'usage': max_usage,
+        'date': max_date
+    }}
+
+    if stats.count() > 0:
+        for stat in stats:
+            date = datetime.datetime.fromtimestamp(
+                stat['time']
+            ).strftime('%H:%M')
+            if date not in res['labels']:
+                if stat['cpu_usage'] > max_usage:
+                    max_usage = stat['cpu_usage']
+                    max_date = date
+                res['data'].append(stat['cpu_usage'])
+                res['labels'].append(date)
+                avg += stat['cpu_usage']
+        res['avg'] = round(avg / len(res['data']), 2)
+        res['max'] = {
+            'usage': max_usage,
+            'date': max_date
+        }
+
+    return jsonify(res)
+
+
+@app.route('/user/container/ram/<container_id>')
+@login_required
+def container_stats_ram(container_id):
+    cont = app.config['CONTAINERS_COLLECTION'].find_one(
+        {
+            "name": container_id,
+            "user_id": ObjectId(g.user.get_id())
+        }
+    )
+    now = datetime.datetime.now()
+    start = time.mktime(now.replace(hour=00, minute=00, second=00, microsecond=0).timetuple())
+    end = time.mktime(now.replace(hour=23, minute=59, second=59, microsecond=999999).timetuple())
+    stats = app.config['STATISTIC_COLLECTION'].find({
+        'container_id': cont['_id'],
+        'time': {'$gte': start, '$lte': end}
+    })
+
+    avg = 0.0
+    max_usage = 0.0
+    max_date = datetime.datetime.fromtimestamp(
+        time.time()
+    ).strftime('%H:%M')
+
+    res = {"data": [], "labels": [], 'avg': avg, 'max': {
+        'usage': max_usage,
+        'date': max_date
+    }}
+
+    if stats.count() > 0:
+        for stat in stats:
+            date = datetime.datetime.fromtimestamp(
+                stat['time']
+            ).strftime('%H:%M')
+            if date not in res['labels']:
+                if stat['ram_usage'] > max_usage:
+                    max_usage = stat['ram_usage']
+                    max_date = date
+                res['data'].append(stat['ram_usage'])
+                res['labels'].append(date)
+                avg += stat['ram_usage']
+        res['avg'] = round(avg / len(res['data']), 2)
+        res['max'] = {
+            'usage': max_usage,
+            'date': max_date
+        }
+
+    return jsonify(res)
+
+
+@app.route('/user/container/response/<container_id>')
+@login_required
+def container_stats_response(container_id):
+    cont = app.config['CONTAINERS_COLLECTION'].find_one(
+        {
+            "name": container_id,
+            "user_id": ObjectId(g.user.get_id())
+        }
+    )
+    now = datetime.datetime.now()
+    start = time.mktime(now.replace(hour=00, minute=00, second=00, microsecond=0).timetuple())
+    end = time.mktime(now.replace(hour=23, minute=59, second=59,microsecond=999999).timetuple())
+    stats = app.config['STATISTIC_COLLECTION'].find({
+        'container_id': cont['_id'],
+        'time': {'$gte': start, '$lte': end}
+    })
+
+    avg = 0.0
+    max_usage = 0.0
+    max_date = datetime.datetime.fromtimestamp(
+        time.time()
+    ).strftime('%H:%M')
+
+    res = {
+        "data": [],
+        "labels": [],
+        'avg': avg,
+        'avg_user': 0,
+        'max_users': 0,
+        'max': {
+            'usage': max_usage,
+            'date': max_date
+        }
+    }
+
+    if stats.count() > 0:
+        for stat in stats:
+            date = datetime.datetime.fromtimestamp(
+                stat['time']
+            ).strftime('%H:%M')
+            if date not in res['labels']:
+                if stat['response_time'] > max_usage:
+                    max_usage = stat['response_time']
+                    max_date = date
+                res['data'].append(stat['response_time'])
+                res['labels'].append(date)
+                avg += stat['response_time']
+        res['avg'] = round(avg / len(res['data']), 2)
+        res['avg_user'] = res['avg'] / len(res['data'])
+        res['max_users'] = 1 / res['avg_user']
+        res['max'] = {
+            'usage': max_usage,
+            'date': max_date
+        }
+
+    return jsonify(res)
 
 
 @app.route('/user/container/cmd/<container_id>/<cmd>', methods=['POST'])
@@ -135,7 +298,7 @@ def container_cmd(container_id, cmd):
             if res.ok and int(res.json()['code']) == 200:
                 app.config['CONTAINERS_COLLECTION'].update(
                     {"_id": cont['_id']},
-                    {'$set':{'status': CONTAINER__STATUS_ONLINE}}
+                    {'$set': {'status': CONTAINER__STATUS_ONLINE}}
                 )
                 return jsonify({
                     "code": 200,
@@ -171,6 +334,9 @@ def container_cmd(container_id, cmd):
             if res.ok and int(res.json()['code']) == 200:
                 app.config['CONTAINERS_COLLECTION'].remove(
                     {"_id": cont['_id']},
+                )
+                app.config['STATISTIC_COLLECTION'].remove(
+                    {"container_id": cont['_id']},
                 )
                 return jsonify({
                     "code": 200,

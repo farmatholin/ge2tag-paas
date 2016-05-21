@@ -31,6 +31,7 @@ class GtTool(object):
     def create(self, user_id, container_id, cpu_chares=50, cpu_quota=25000, mem_limit='150M'):
         user_container = "{}_{}".format(user_id, container_id)
         user = create_user(user_id, self.config.get_config())
+        self.ports_in_use = self.load_ports()
         port = self.get_free_port()
         if port < 0:
             raise FreePortExistError
@@ -63,18 +64,34 @@ class GtTool(object):
         os.chdir(self.root_dir)
         log.info('kill done')
 
+    def rm(self, user_id, container_id):
+        log.info('remove container')
+        os.chdir(os.path.join(self.config.user_root_dir, user_id, container_id))
+        rc = manage_script(['docker-compose', 'rm', '-f'])
+        os.chdir(self.root_dir)
+        log.info('remove done')
+
     def delete(self, user_id, container_id):
         user_container = "{}_{}".format(user_id, container_id)
         log.info("Delete container {}".format(container_id))
+        self.ports_in_use = self.load_ports()
+        for port in self.ports_in_use.keys():
+            log.info(port)
+            log.info(self.ports_in_use[str(port)])
+            if user_container == self.ports_in_use[str(port)]:
+                log.info(self.ports_in_use)
+                del self.ports_in_use[str(port)]
+                log.info(self.ports_in_use)
+                self.update_ports()
         self.kill(user_id, container_id)
+        self.rm(user_id, container_id)
         user = load_user(user_id, self.config.get_config())
         user.remove_container(container_id)
-        for port in self.ports_in_use.keys():
-            if user_container == self.ports_in_use[port]:
-                del self.ports_in_use[port]
-                self.update_ports()
-                return True
-        return False
+
+    def stats(self, user_id, container_id):
+        name = "{}_{}_geo2tag_{}_1".format(container_id, user_id, container_id)
+        stats = self.dclient.stats(name)
+        return stats
 
     def load_ports(self):
         try:

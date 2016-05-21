@@ -62,7 +62,12 @@ def stop_container(content):
 
 @celery.task()
 def create_container(content):
-    return tool.create(content['user'], content['container'])
+    return tool.create(
+        content['user'],
+        content['container'],
+        cpu_quota=content['cpu'] * 1000,
+        mem_limit=str(content['ram']) + "M"
+    )
 
 
 @celery.task()
@@ -75,7 +80,7 @@ def start():
     content = request.get_json(silent=True)
     if 'user' and 'container' in content.keys():
         res = start_container.delay(content)
-        #res.wait()
+        # res.wait()
         return jsonify({
             "code": 200,
             "data":
@@ -103,7 +108,7 @@ def stop():
     content = request.get_json(silent=True)
     if 'user' and 'container' in content.keys():
         res = stop_container.delay(content)
-        #res.wait()
+        # res.wait()
         return jsonify({
             "code": 200,
             "data":
@@ -126,7 +131,7 @@ def create():
     content = request.get_json(silent=True)
     if 'user' and 'container' in content.keys():
         res = create_container.delay(content)
-        #res.wait()
+        # res.wait()
         return jsonify({
             "code": 200,
             "data":
@@ -150,12 +155,35 @@ def create():
     })
 
 
+@app.route('/stats', methods=['POST'])
+def stats():
+    content = request.get_json(silent=True)
+    if 'user' and 'container' in content.keys():
+        res = tool.stats(content['user'], content['container'])
+        return jsonify({
+            "code": 200,
+            "data": {
+                "message": "Stats",
+                "container": content['container'],
+                "user": content['user'],
+                "stats": res
+            }
+        })
+    return jsonify({
+        "code": 400,
+        "data":
+            {
+                "message": "Required data 'user' and 'container'",
+            }
+    })
+
+
 @app.route("/remove", methods=['POST'])
 def remove():
     content = request.get_json(silent=True)
     if 'user' and 'container' in content.keys():
         res = remove_container.delay(content)
-       # res.wait()
+        # res.wait()
         return jsonify({
             "code": 200,
             "data":
@@ -185,5 +213,5 @@ class MyDaemon(Daemon):
     def run(self):
         app.run(host='0.0.0.0', port=self.port)
 
-    # if __name__ == "__main__":
-    #  app.run(host='0.0.0.0', port=8000)
+        # if __name__ == "__main__":
+        #  app.run(host='0.0.0.0', port=8000)

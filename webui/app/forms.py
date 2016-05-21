@@ -1,5 +1,5 @@
 from flask.ext.wtf import Form
-from wtforms import StringField, PasswordField
+from wtforms import StringField, PasswordField, IntegerField
 from wtforms.validators import DataRequired
 
 
@@ -17,3 +17,5 @@ class SignUpForm(Form):
 
 class CreateContainer(Form):
     name = StringField('Name', validators=[DataRequired()])
+    cpu = IntegerField("cpu", validators=[DataRequired()])
+    ram = IntegerField("ram", validators=[DataRequired()])

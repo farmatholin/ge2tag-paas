@@ -7,9 +7,8 @@ class Container(object):
         self.name = name
         self.c_id = c_id
         self.user_id = user_id
-        self.cpu = 1
-        self.mem = 1000
-        self.cpu_quota = 100
+        self.ram = "150M"
+        self.cpu = 25
         self.status = status
         self.host = host
 
@@ -19,11 +18,14 @@ class Container(object):
             return []
         res = []
         for r_container in raw_containers:
-            res.append(Container(
+            con = Container(
                 str(r_container['_id']),
                 r_container['name'],
                 str(r_container['user_id']),
                 str(r_container['host']),
                 str(r_container['status']),
-            ))
+            )
+            con.mem = str(r_container.get('ram', '150M'))
+            con.cpu = int(r_container.get('cpu', '25'))
+            res.append(con)
         return res
