@@ -7,6 +7,7 @@ class Container(object):
         self.container_id = container_id
         self.path = os.path.join(user_path, container_id)
         self.logs_path = os.path.join(self.path, "logs")
+        self.nginx_log_path = os.path.join(self.path, "nginx_logs")
         self.db_path = os.path.join(self.path, "db")
         self.plugins_path = os.path.join(self.path, "plugins")
         self.status = 'offline'
@@ -19,6 +20,8 @@ class Container(object):
         os.mkdir(self.logs_path)
         os.mkdir(self.db_path)
         os.mkdir(self.plugins_path)
+        os.mkdir(self.nginx_log_path)
+        os.mknod(os.path.join(self.nginx_log_path, 'access.log'))
         os.mknod(os.path.join(self.path, 'meta.json'))
         with open(os.path.join(self.path, 'meta.json'), 'w+') as f:
             f.write(json.dumps({

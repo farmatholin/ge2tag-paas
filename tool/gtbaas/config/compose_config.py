@@ -11,9 +11,10 @@ class ComposeConfig(object):
         with open(self.template_path) as tmplt:
             return tmplt.read()
 
-    def create_config(self, port, container):
+    def create_config(self, user, port, container):
         config = self.template \
             .replace("%container_id%", str(container.container_id)) \
+            .replace("%user_id%", str(user.user_id)) \
             .replace("%port%", str(port)) \
             .replace("%image_container%", self.image_container) \
             .replace("%plugins_path%", container.plugins_path) \

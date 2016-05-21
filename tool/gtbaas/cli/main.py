@@ -66,7 +66,7 @@ class Dispatcher(object):
         parser.add_argument('--cpu-quota', default=25000)
         parser.add_argument('--mem-limit', default='150M')
         parser.add_argument('--cpu-shares', default=50)
-        parser.add_argument('-p', '--port')
+        parser.add_argument('-p', '--port', default=8000)
         parser.add_argument('-d', '--daemon', action='store_true')
         parser.add_argument('-s', '--stop', action='store_true')
 

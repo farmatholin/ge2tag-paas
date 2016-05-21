@@ -26,6 +26,8 @@ class GtTool(object):
         self.dclient = DockerCommunicator()
         self.root_dir = os.path.realpath('.')
 
+        log.info("loaded")
+
     def create(self, user_id, container_id, cpu_chares=50, cpu_quota=25000, mem_limit='150M'):
         user_container = "{}_{}".format(user_id, container_id)
         user = create_user(user_id, self.config.get_config())
@@ -34,7 +36,8 @@ class GtTool(object):
             raise FreePortExistError
         log.info("create container {} on port {}".format(container_id, port))
         user.create_container(container_id, port, cpu_chares, cpu_quota, mem_limit)
-        self.ports_in_use[port] = user_container
+        self.ports_in_use[str(port)] = user_container
+        log.info(self.ports_in_use)
         self.update_ports()
         return user
 
@@ -85,6 +88,7 @@ class GtTool(object):
             ports.write(json.dumps(self.ports_in_use))
 
     def get_free_port(self):
+        log.info(self.ports_in_use.keys())
         for port in self.ports_list:
             if str(port) not in self.ports_in_use.keys():
                 return port

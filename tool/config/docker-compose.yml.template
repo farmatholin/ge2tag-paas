@@ -1,4 +1,4 @@
-geo2tag_%container_id%:
+%user_id%_geo2tag_%container_id%:
   image: %image_container%
   ports:
     - "%port%:80"
@@ -16,8 +16,8 @@ geo2tag_%container_id%:
 
   restart: always
   links:
-    - mongo_%container_id%:mongo
-mongo_%container_id%:
+    - %user_id%_mongo_%container_id%:mongo
+%user_id%_mongo_%container_id%:
   image: mongo:latest
   volumes:
     - %db_path%:/data/db

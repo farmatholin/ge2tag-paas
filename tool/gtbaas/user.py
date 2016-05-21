@@ -39,7 +39,7 @@ class User(object):
             self.containers[container] = con
 
     def create_config(self, container, port):
-        self.compose_config.create_config(port, container)
+        self.compose_config.create_config(self,port, container)
 
     def create_nginx_config(self, container, port):
         self.nginx_config.create_config(self, container, port)

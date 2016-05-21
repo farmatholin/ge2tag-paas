@@ -1,14 +1,63 @@
 {% extends "base.html" %}
 {% block content %}
-        <h2>Containers</h2>
-        <ul class="list-unstyled">
-            <li>
-                <a href="{{ url_for('create_container') }}">Create Container</a>
-            </li>
-            {% for container in containers %}
-             <li>
-                <a href="#{{ container.id }}">{{ container.name }}</a>
-             </li>
-            {% endfor %}
-            </ul>
+<h2>Containers</h2>
+<div class="gt-containers">
+    <div class="col-md-4 gt-container">
+        <div class="warp row">
+            <div class="gt-container-data">
+                <a href="{{ url_for('create_container') }}">
+                    <img src="{{ url_for('static', filename='img/add.png') }}">
+                    <p>
+                    <h3>Add Container</h3></p>
+                </a>
+            </div>
+        </div>
+
+    </div>
+    {% for container in containers %}
+    <div class="col-md-4 gt-container" id="container-{{ container.name }}">
+        <div class="warp row">
+            <div class="gt-container-data">
+                <a href="{{ url_for('container', container_id=container.name) }}">
+                    <img width="130" src="{{ url_for('static', filename='img/container.png') }}">
+                    <p>
+                    <h3>{{ container.name }}</h3></p>
+
+                </a>
+                <div class="gt-container-info">
+                    <p>Status:
+                        <b class="container-status">
+                            {{ container.status }}
+                        </b>
+                    </p>
+                    <p>
+                        Host: <a href="http://{{ container.host }}">
+                        <b> {{ container.host }} </b>
+                    </a>
+                    </p>
+                </div>
+                <p>
+                    <a href="javascript:void(0)"
+                       class="btn btn-success gt-start"
+                       style="{% if container.status == 'online'%} display:none; {% endif %}"
+                       data-name="{{ container.name }}">
+                        Start
+                    </a>
+                    <a href="javascript:void(0)"
+                       class="btn btn-warning gt-stop"
+                       style="{% if container.status == 'offline'%} display:none; {% endif %}"
+                       data-name="{{ container.name }}">
+                        Stop
+                    </a>
+                </p>
+                <p>
+                    <a href="javascript:void(0)" class="btn btn-danger gt-remove" data-name="{{ container.name }}">Remove</a>
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+
 {% endblock %}

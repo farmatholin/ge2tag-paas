@@ -20,7 +20,9 @@ class NginxConfig(object):
         config = self.template \
             .replace("%user_container%", container_name) \
             .replace("%site%", self.site) \
-            .replace("%port%", str(port))
+            .replace("%port%", str(port)) \
+            .replace("%nginx_log_path%", container.nginx_log_path)
+
         conf_file = os.path.join(container.path, "nginx.conf")
         with open(conf_file, "w+") as compose:
             compose.write(config)

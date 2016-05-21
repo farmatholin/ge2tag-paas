@@ -1,0 +1,35 @@
+.gt-container {
+    margin: 0 30px 15px 0;
+    width: 198px;
+    height: auto;
+    background-color: #ffffff;
+    border-radius: 0;
+    padding: 5px;
+}
+
+.gt-containers {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    left: 0;
+    top: 0;
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+}
+.gt-container .gt-container-info {
+    text-align: left;
+}
+.gt-container .warp {
+    border: 1px solid #000;
+    border-radius: 15%;
+}
+.gt-containers .gt-container-data {
+    padding: 5px;
+    position: relative;
+    height: 345px;
+}
+.gt-container-data a {
+    text-decoration: none;
+    color: #000000;
+}
