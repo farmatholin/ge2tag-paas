@@ -1,7 +1,9 @@
 import json
 import logging
+import random
 
 from flask import Flask, request, jsonify
+from celery import Celery
 
 from gtbaas.gt_tool import GtTool
 from gtbaas.server.daemon import Daemon
@@ -11,23 +13,69 @@ app = Flask(__name__)
 tool = GtTool()
 log = logging.getLogger(__name__)
 
+app.config.update(
+    CELERY_BROKER_URL='redis://localhost:6379',
+    CELERY_RESULT_BACKEND='redis://localhost:6379'
+)
+
+
+def make_celery(app):
+    celery = Celery(app.import_name, broker=app.config['CELERY_BROKER_URL'])
+    celery.conf.update(app.config)
+    TaskBase = celery.Task
+
+    class ContextTask(TaskBase):
+        abstract = True
+
+        def __call__(self, *args, **kwargs):
+            with app.app_context():
+                return TaskBase.__call__(self, *args, **kwargs)
+
+    celery.Task = ContextTask
+    return celery
+
+
+celery = make_celery(app)
+
 
 @app.route("/")
 def hello():
     return jsonify({
-        'code':200,
+        'code': 200,
         "data":
             {
-                'message': 'Good morning sir'
+                'message': 'Good morning sir',
+                'rand': random.random(),
             }
     })
+
+
+@celery.task()
+def start_container(content):
+    return tool.start(content['user'], content['container'])
+
+
+@celery.task()
+def stop_container(content):
+    return tool.stop(content['user'], content['container'])
+
+
+@celery.task()
+def create_container(content):
+    return tool.create(content['user'], content['container'])
+
+
+@celery.task()
+def remove_container(content):
+    return tool.delete(content['user'], content['container'])
 
 
 @app.route("/start", methods=['POST'])
 def start():
     content = request.get_json(silent=True)
     if 'user' and 'container' in content.keys():
-        tool.start(content['user'], content['container'])
+        res = start_container.delay(content)
+        #res.wait()
         return jsonify({
             "code": 200,
             "data":
@@ -54,7 +102,8 @@ def start():
 def stop():
     content = request.get_json(silent=True)
     if 'user' and 'container' in content.keys():
-        tool.stop(content['user'], content['container'])
+        res = stop_container.delay(content)
+        #res.wait()
         return jsonify({
             "code": 200,
             "data":
@@ -76,7 +125,8 @@ def stop():
 def create():
     content = request.get_json(silent=True)
     if 'user' and 'container' in content.keys():
-        tool.create(content['user'], content['container'])
+        res = create_container.delay(content)
+        #res.wait()
         return jsonify({
             "code": 200,
             "data":
@@ -104,7 +154,8 @@ def create():
 def remove():
     content = request.get_json(silent=True)
     if 'user' and 'container' in content.keys():
-        tool.delete(content['user'], content['container'])
+        res = remove_container.delay(content)
+       # res.wait()
         return jsonify({
             "code": 200,
             "data":
@@ -133,3 +184,6 @@ class MyDaemon(Daemon):
 
     def run(self):
         app.run(host='0.0.0.0', port=self.port)
+
+    # if __name__ == "__main__":
+    #  app.run(host='0.0.0.0', port=8000)

@@ -1,18 +1,35 @@
 {% extends "base.html" %}
 {% block content %}
 <h2>Sign Up</h2>
-        <form action="" method="POST" name="form">
-            <div class="col-md-4 col-md-offset-4">
-                {{ form.hidden_tag() }}
-                <div class="form-group">
-                    <label class="control-label" for="username">Username</label>
-                    {{ form.username }}
+<div class="row">
+    <div class="col-md-6">
+        <form class="form-horizontal reg-form" name="reg-form" method="POST">
+            <div class="form-group">
+                <label for="input-username" class="col-lg-2 control-label">Login</label>
+
+                <div class="col-lg-10">
+                    <input name="username" type="text" class="form-control" id="input-username" placeholder="Login">
                 </div>
-                <div class="form-group">
-                    <label class="control-label" for="password">Password</label>
-                    {{ form.password }}
-                </div>
-                <button class="btn btn-default" type="submit">Submit</button>
             </div>
+            <div class="form-group">
+                <label for="input-password" class="col-lg-2 control-label">Password</label>
+
+                <div class="col-lg-10">
+                    <input name="password" type="password" class="form-control" id="input-password" placeholder="Password">
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-lg-offset-2 col-lg-10">
+                    <button type="submit" class="btn btn-primary">Sign Up</button>
+                    <span class="help-block error"></span>
+                </div>
+            </div>
+            {{ form.hidden_tag() }}
         </form>
+    </div>
+    <div class="col-md-6">
+        <h2>Nearly Done</h2>
+        <p>After registration you can use this service how you want</p>
+    </div>
+</div>
 {% endblock %}
