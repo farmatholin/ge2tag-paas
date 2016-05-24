@@ -2,8 +2,8 @@ import json
 import logging
 import random
 
-from flask import Flask, request, jsonify
 from celery import Celery
+from flask import Flask, request, jsonify
 
 from gtbaas.gt_tool import GtTool
 from gtbaas.server.daemon import Daemon
@@ -160,13 +160,36 @@ def stats():
     content = request.get_json(silent=True)
     if 'user' and 'container' in content.keys():
         res = tool.stats(content['user'], content['container'])
+        logs = tool.nginx_log(content['user'], content['container'])
         return jsonify({
             "code": 200,
             "data": {
                 "message": "Stats",
                 "container": content['container'],
                 "user": content['user'],
-                "stats": res
+                "stats": res,
+                "logs": logs
+            }
+        })
+    return jsonify({
+        "code": 400,
+        "data":
+            {
+                "message": "Required data 'user' and 'container'",
+            }
+    })
+
+
+@app.route("/nginx_log", methods=['POST'])
+def log_reader():
+    content = request.get_json(silent=True)
+    if 'user' and 'container' in content.keys():
+        logs = tool.nginx_log(content['user'], content['container'])
+        return jsonify({
+            "code": 200,
+            "data": {
+                "message": "data",
+                "logs": logs
             }
         })
     return jsonify({

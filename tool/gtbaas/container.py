@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 
 
 class Container(object):
@@ -29,6 +30,16 @@ class Container(object):
                 'cpu_quota': self.cpu_quota,
                 'mem_limit': self.mem_limit
             }))
+
+    def rotate_log(self):
+        shutil.move(os.path.join(self.nginx_log_path, 'access.log'),
+                    os.path.join(self.nginx_log_path, 'access.log.rotated'))
+
+        os.mknod(os.path.join(self.nginx_log_path, 'access.log'))
+
+    def get_logs(self):
+        with open(os.path.join(self.nginx_log_path, 'access.log.rotated'), 'r+') as f:
+            return f.readlines()
 
     def load(self):
         with open(os.path.join(self.path, 'meta.json'), 'r+') as f:

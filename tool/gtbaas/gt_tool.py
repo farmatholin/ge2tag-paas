@@ -93,6 +93,18 @@ class GtTool(object):
         stats = self.dclient.stats(name)
         return stats
 
+    def nginx_log(self, user_id, container_id):
+        user = load_user(user_id, self.config.get_config())
+        container = user.containers[container_id]
+        log.info('log rotate')
+        container.rotate_log()
+        log.info('reload nginx')
+        with open('/var/run/nginx.pid') as f:
+            pid = f.readline().strip('\n\r\t')
+            manage_script(['kill', '-USR1', pid])
+            log.info('ok')
+        return container.get_logs()
+
     def load_ports(self):
         try:
             with open(os.path.join(self.config.user_root_dir, 'ports.dat'), 'r+') as ports:

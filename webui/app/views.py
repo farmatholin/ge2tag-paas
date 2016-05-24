@@ -120,9 +120,10 @@ def container(container_id):
     return render_template('user/container.html', container=cont)
 
 
-@app.route('/user/container/cpu/<container_id>')
+
+@app.route('/user/container/stats/hourly/<type>/<container_id>')
 @login_required
-def container_stats_cpu(container_id):
+def container_stats_hourly(type, container_id):
     cont = app.config['CONTAINERS_COLLECTION'].find_one(
         {
             "name": container_id,
@@ -130,148 +131,135 @@ def container_stats_cpu(container_id):
         }
     )
     now = datetime.datetime.now()
+    end_time = 24
+    i = 1
     start = time.mktime(now.replace(hour=00, minute=00, second=00, microsecond=0).timetuple())
-    end = time.mktime(now.replace(hour=23, minute=59, second=59, microsecond=999999).timetuple())
-    stats = app.config['STATISTIC_COLLECTION'].find({
-        'container_id': cont['_id'],
-        'time': {'$gte': start, '$lte': end}
-    })
-
-    avg = 0.0
-    max_usage = 0.0
-    max_date = datetime.datetime.fromtimestamp(
-        time.time()
-    ).strftime('%H:%M')
-
-    res = {"data": [], "labels": [], 'avg': avg, 'max': {
-        'usage': max_usage,
-        'date': max_date
-    }}
-
-    if stats.count() > 0:
-        for stat in stats:
-            date = datetime.datetime.fromtimestamp(
-                stat['time']
-            ).strftime('%H:%M')
-            if date not in res['labels']:
-                if stat['cpu_usage'] > max_usage:
-                    max_usage = stat['cpu_usage']
-                    max_date = date
-                res['data'].append(stat['cpu_usage'])
-                res['labels'].append(date)
-                avg += stat['cpu_usage']
-        res['avg'] = round(avg / len(res['data']), 2)
-        res['max'] = {
-            'usage': max_usage,
-            'date': max_date
-        }
-
-    return jsonify(res)
-
-
-@app.route('/user/container/ram/<container_id>')
-@login_required
-def container_stats_ram(container_id):
-    cont = app.config['CONTAINERS_COLLECTION'].find_one(
-        {
-            "name": container_id,
-            "user_id": ObjectId(g.user.get_id())
-        }
-    )
-    now = datetime.datetime.now()
-    start = time.mktime(now.replace(hour=00, minute=00, second=00, microsecond=0).timetuple())
-    end = time.mktime(now.replace(hour=23, minute=59, second=59, microsecond=999999).timetuple())
-    stats = app.config['STATISTIC_COLLECTION'].find({
-        'container_id': cont['_id'],
-        'time': {'$gte': start, '$lte': end}
-    })
-
-    avg = 0.0
-    max_usage = 0.0
-    max_date = datetime.datetime.fromtimestamp(
-        time.time()
-    ).strftime('%H:%M')
-
-    res = {"data": [], "labels": [], 'avg': avg, 'max': {
-        'usage': max_usage,
-        'date': max_date
-    }}
-
-    if stats.count() > 0:
-        for stat in stats:
-            date = datetime.datetime.fromtimestamp(
-                stat['time']
-            ).strftime('%H:%M')
-            if date not in res['labels']:
-                if stat['ram_usage'] > max_usage:
-                    max_usage = stat['ram_usage']
-                    max_date = date
-                res['data'].append(stat['ram_usage'])
-                res['labels'].append(date)
-                avg += stat['ram_usage']
-        res['avg'] = round(avg / len(res['data']), 2)
-        res['max'] = {
-            'usage': max_usage,
-            'date': max_date
-        }
-
-    return jsonify(res)
-
-
-@app.route('/user/container/response/<container_id>')
-@login_required
-def container_stats_response(container_id):
-    cont = app.config['CONTAINERS_COLLECTION'].find_one(
-        {
-            "name": container_id,
-            "user_id": ObjectId(g.user.get_id())
-        }
-    )
-    now = datetime.datetime.now()
-    start = time.mktime(now.replace(hour=00, minute=00, second=00, microsecond=0).timetuple())
-    end = time.mktime(now.replace(hour=23, minute=59, second=59,microsecond=999999).timetuple())
-    stats = app.config['STATISTIC_COLLECTION'].find({
-        'container_id': cont['_id'],
-        'time': {'$gte': start, '$lte': end}
-    })
-
-    avg = 0.0
-    max_usage = 0.0
-    max_date = datetime.datetime.fromtimestamp(
-        time.time()
-    ).strftime('%H:%M')
-
+    end = time.mktime(now.replace(hour=1, minute=00, second=00, microsecond=0).timetuple())
+    total_sum = float()
+    total_count = float()
+    hours = 0
     res = {
-        "data": [],
-        "labels": [],
-        'avg': avg,
-        'avg_user': 0,
-        'max_users': 0,
-        'max': {
-            'usage': max_usage,
-            'date': max_date
-        }
+        'labels': [],
+        'data': {
+            'avg': [],
+        },
+        'total_avg': 0,
     }
+    label = "{} - {}".format(0, 1)
+    label_type = ''
+    label_type_avg = ''
+    if type == 'cpu':
+        label_type = 'cpu_usage'
+        label_type_avg = 'cpu_usage_avg'
+    elif type == 'response':
+        label_type = 'request_time'
+        label_type_avg = 'request_time_avg'
+    elif type == 'ram':
+        label_type = 'ram_usage'
+        label_type_avg = 'ram_usage_avg'
+    while True:
+        stats = app.config['CONTAINER_PROCESSED_STATS_COLLECTION'].find_one({
+            'container_id': cont['_id'],
+            'time': {'$gte': start, '$lte': end}
+        })
+        res['labels'].append(label)
+        if stats:
+            res['data']['avg'].append(round(stats[label_type_avg], 3))
+            total_sum += stats[label_type]
+            total_count += stats['requests']
+            hours += 1
+        else:
+            res['data']['avg'].append(0)
 
-    if stats.count() > 0:
-        for stat in stats:
-            date = datetime.datetime.fromtimestamp(
-                stat['time']
-            ).strftime('%H:%M')
-            if date not in res['labels']:
-                if stat['response_time'] > max_usage:
-                    max_usage = stat['response_time']
-                    max_date = date
-                res['data'].append(stat['response_time'])
-                res['labels'].append(date)
-                avg += stat['response_time']
-        res['avg'] = round(avg / len(res['data']), 2)
-        res['avg_user'] = res['avg'] / len(res['data'])
-        res['max_users'] = 1 / res['avg_user']
-        res['max'] = {
-            'usage': max_usage,
-            'date': max_date
+        i += 1
+        if i > end_time:
+            break
+        if i == end_time:
+            start = time.mktime(now.replace(hour=i-1, minute=00, second=00, microsecond=0).timetuple())
+            end = time.mktime(now.replace(hour=i-1, minute=59, second=59, microsecond=999999).timetuple())
+            label = "{} - {}".format(i-1, 24)
+        else:
+            start = time.mktime(now.replace(hour=i - 1, minute=00, second=00, microsecond=0).timetuple())
+            end = time.mktime(now.replace(hour=i, minute=00, second=00, microsecond=0).timetuple())
+            label = "{} - {}".format(i - 1, i)
+    if total_count > 0:
+        res['total_avg'] = round(total_sum / total_count, 4)
+
+    return jsonify(res)
+
+
+@app.route('/user/container/log/hourly/response/<container_id>')
+@login_required
+def container_log_hourly_response(container_id):
+    cont = app.config['CONTAINERS_COLLECTION'].find_one(
+        {
+            "name": container_id,
+            "user_id": ObjectId(g.user.get_id())
         }
+    )
+    now = datetime.datetime.now()
+    end_time = 24
+    i = 1
+    start = time.mktime(now.replace(hour=00, minute=00, second=00, microsecond=0).timetuple())
+    end = time.mktime(now.replace(hour=1, minute=00, second=00, microsecond=0).timetuple())
+    total_sum = float()
+    total_count = float()
+    hours = 0
+    normal = 0
+    res = {
+        'labels': [],
+        'data': {
+            'avg': [],
+            'requests': [],
+            'throughput': [],
+            'normal': []
+        },
+        'total_avg': 0,
+        'total_req': 0,
+        'normal': 0,
+        'total_throughput': 0
+    }
+    label = "{} - {}".format(0, 1)
+    while True:
+        r_sum = float(0)
+        stats = app.config['CONTAINER_PROCESSED_LOG_COLLECTION'].find_one({
+            'container_id': cont['_id'],
+            'time': {'$gte': start, '$lte': end}
+        })
+        res['labels'].append(label)
+        if stats:
+            res['data']['requests'].append(stats['requests'])
+            res['data']['avg'].append(round(stats['avg'], 3))
+            res['data']['throughput'].append(round(stats['throughput']/60, 3))
+            res['data']['normal'].append(round(1/stats['avg']))
+            normal += round(1/stats['avg'])
+            hours += 1
+            total_sum += stats['sum']
+            total_count += stats['requests']
+        else:
+            res['data']['avg'].append(0)
+            res['data']['requests'].append(0)
+            res['data']['throughput'].append(0)
+            res['data']['normal'].append(0)
+
+        i += 1
+        if i > end_time:
+            break
+        if i == end_time:
+            start = time.mktime(now.replace(hour=i - 1, minute=00, second=00, microsecond=0).timetuple())
+            end = time.mktime(now.replace(hour=i - 1, minute=59, second=59, microsecond=999999).timetuple())
+            label = "{} - {}".format(i - 1, 24)
+        else:
+            start = time.mktime(now.replace(hour=i - 1, minute=00, second=00, microsecond=0).timetuple())
+            end = time.mktime(now.replace(hour=i, minute=00, second=00, microsecond=0).timetuple())
+            label = "{} - {}".format(i - 1, i)
+    if total_count > 0:
+        res['total_avg'] = round(total_sum / total_count, 4)
+        res['total_ms'] = total_sum
+        res['total_req'] = total_count
+        res['total_throughput'] = round(total_count / 60, 3)
+        if hours > 0:
+            res['normal'] = round(normal/hours)
 
     return jsonify(res)
 
@@ -336,6 +324,12 @@ def container_cmd(container_id, cmd):
                     {"_id": cont['_id']},
                 )
                 app.config['STATISTIC_COLLECTION'].remove(
+                    {"container_id": cont['_id']},
+                )
+                app.config['CONTAINER_PROCESSED_LOG_COLLECTION '].remove(
+                    {"container_id": cont['_id']},
+                )
+                app.config['CONTAINER_LOG_COLLECTION'].remove(
                     {"container_id": cont['_id']},
                 )
                 return jsonify({
