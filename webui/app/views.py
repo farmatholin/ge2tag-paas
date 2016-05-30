@@ -120,7 +120,6 @@ def container(container_id):
     return render_template('user/container.html', container=cont)
 
 
-
 @app.route('/user/container/stats/hourly/<type>/<container_id>')
 @login_required
 def container_stats_hourly(type, container_id):
@@ -175,9 +174,9 @@ def container_stats_hourly(type, container_id):
         if i > end_time:
             break
         if i == end_time:
-            start = time.mktime(now.replace(hour=i-1, minute=00, second=00, microsecond=0).timetuple())
-            end = time.mktime(now.replace(hour=i-1, minute=59, second=59, microsecond=999999).timetuple())
-            label = "{} - {}".format(i-1, 24)
+            start = time.mktime(now.replace(hour=i - 1, minute=00, second=00, microsecond=0).timetuple())
+            end = time.mktime(now.replace(hour=i - 1, minute=59, second=59, microsecond=999999).timetuple())
+            label = "{} - {}".format(i - 1, 24)
         else:
             start = time.mktime(now.replace(hour=i - 1, minute=00, second=00, microsecond=0).timetuple())
             end = time.mktime(now.replace(hour=i, minute=00, second=00, microsecond=0).timetuple())
@@ -230,9 +229,9 @@ def container_log_hourly_response(container_id):
         if stats:
             res['data']['requests'].append(stats['requests'])
             res['data']['avg'].append(round(stats['avg'], 3))
-            res['data']['throughput'].append(round(stats['throughput']/60, 3))
-            res['data']['normal'].append(round(1/stats['avg']))
-            normal += round(1/stats['avg'])
+            res['data']['throughput'].append(round(stats['throughput'] / 60, 3))
+            res['data']['normal'].append(round(1 / stats['avg'], 2))
+            normal += round(1 / stats['avg'])
             hours += 1
             total_sum += stats['sum']
             total_count += stats['requests']
@@ -259,7 +258,7 @@ def container_log_hourly_response(container_id):
         res['total_req'] = total_count
         res['total_throughput'] = round(total_count / 60, 3)
         if hours > 0:
-            res['normal'] = round(normal/hours)
+            res['normal'] = round(normal / hours, 2)
 
     return jsonify(res)
 
